@@ -1,49 +1,49 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import { easeInOut, motion, useAnimation, useInView } from "framer-motion";
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPhone } from '@fortawesome/free-solid-svg-icons';
 import { faEnvelope } from "@fortawesome/free-regular-svg-icons";
+import emailjs from '@emailjs/browser';
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 export const Contact = () => {
-  const formInitialDetails = {
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    message: "",
-  };
+  const form = useRef();
 
-  const [formDetails, setFormDetails] = useState(formInitialDetails);
-  const [buttonText, setButtonText] = useState("Send");
-  const [status, setStatus] = useState({});
-
-  const onFormUpdate = (category, value) => {
-    setFormDetails({
-      ...formDetails,
-      [category]: value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
+  const sendEmail = (e) => {
     e.preventDefault();
-    setButtonText('Sending...');
-    let response = await fetch("http://localhost:5000/contact", {
-      method: "POST",
-      hearders: {
-        "Content-Type": "Application/json;charset=utf-8",
-      },
-      body: JSON.stringify(formDetails),
-    });
-    setButtonText("Send");
-    let result = response.json();
-    setFormDetails(formInitialDetails);
-    if (result.code === 200) {
-      setStatus({ success: true, message: 'Message Sent Successfully'})
-    } else {
-      setStatus({ success: false, message: 'Something Went Wrong'})
-    }
+    emailjs
+      .sendForm( 'service_fc23ljj', 'template_nq295u8', form.current, {
+        publicKey: 'D78Ve_orQNUMN5dOx',
+      })
+      .then(
+        () => {
+          console.log('SUCCESS!');
+          toast.success('Message Sent!', {
+            position: "top-right",
+            autoClose: 3000,
+            theme: "dark",
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        },
+        (error) => {
+          console.log('FAILED...', error.text);
+          toast.error('Message Failed: ' + error.text, {
+            position: "top-right",
+            autoClose: 3000,
+            theme: "dark",
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        },
+      );
   };
 
   const h2Ref = useRef(null);
@@ -123,8 +123,8 @@ export const Contact = () => {
                 <filter id="neon" x="-50%" y="-50%" width="200%" height="200%">
                   <feFlood
                     result="flood"
-                    flood-color="#00ff00"
-                    flood-opacity="1"
+                    floodColor="#00ff00"
+                    floodOpacity="1"
                   ></feFlood>
                   <feComposite
                     in="flood"
@@ -167,7 +167,7 @@ export const Contact = () => {
                                 c6.831,4.072,12.861,9.337,17.9,15.719c0.497,0.613,1.082,1.322,1.724,2.094c0.952,1.135,2.812,3.438,3.981,5.092V224.538z"
                 fill="none"
                 stroke="#00FF00"
-                stroke-width="2"
+                strokeWidth="2"
                 filter="url(#neon)"
                 variants={pathVariants}
               />
@@ -179,69 +179,52 @@ export const Contact = () => {
             </h2>
             <p><FontAwesomeIcon icon={faPhone} style={{marginRight: '10px'}}/>310-770-1406</p>
             <p><FontAwesomeIcon icon={faEnvelope} style={{marginRight: '10px'}}></FontAwesomeIcon>pedram.jarahzadeh@gmail.com</p>
-            <form onSubmit={handleSubmit}>
+            <form ref={form} onSubmit={sendEmail}>
               <Row>
                 <Col sm={6} className="px-1">
                   <input
                     type="text"
-                    value={formDetails.firstName}
+                    name="first_name"
                     placeholder="First Name"
-                    onChange={(e) => onFormUpdate("firstName", e.target.value)}
                   ></input>
                 </Col>
                 <Col sm={6} className="px-1">
                   <input
                     type="text"
-                    value={formDetails.lastName}
+                    name="last_name"
                     placeholder="Last Name"
-                    onChange={(e) => onFormUpdate("lastName", e.target.value)}
                   ></input>
                 </Col>
                 <Col sm={6} className="px-1">
                   <input
                     type="email"
-                    value={formDetails.email}
+                    name="user_email"
                     placeholder="eMail"
-                    onChange={(e) => onFormUpdate("email", e.target.value)}
                   ></input>
                 </Col>
                 <Col sm={6} className="px-1">
                   <input
                     type="tel"
-                    value={formDetails.phone}
+                    name="user_phone"
                     placeholder="Phone Number"
-                    onChange={(e) => onFormUpdate("phone", e.target.value)}
                   ></input>
                 </Col>
                 <Col>
                   <textarea
                     row="6"
-                    value={formDetails.message}
+                    name="message"
                     placeholder="Message"
-                    onChange={(e) => onFormUpdate("message", e.target.value)}
                   ></textarea>
-                  <button type="submit">
-                    <span>{buttonText}</span>
+                  <button type="submit" value="Send">
+                    <span>Send</span>
                   </button>
-                </Col>
-                <Col md={12}>
-                  {status.message && (
-                    <Col>
-                      <p
-                        className={
-                          status.success === false ? "danger" : "success"
-                        }
-                      >
-                        {status.message}
-                      </p>
-                    </Col>
-                  )}
                 </Col>
               </Row>
             </form>
           </Col>
         </Row>
       </Container>
+      <ToastContainer/>
     </section>
   );
 };
